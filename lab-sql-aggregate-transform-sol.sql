@@ -17,7 +17,7 @@ SELECT CONCAT(FLOOR(AVG(length)/60),':',LPAD(MOD(AVG(length),60),2,'0')) AS avg_
 FROM sakila.film;
 -- 2.You need to gain insights related to rental dates:
 -- 2.1 Calculate the number of days that the company has been operating.
-SELECT DATEDIFF(MAX(rental_date), MIN(rental_date))
+SELECT DATEDIFF(MAX(rental_date), MIN(rental_date)) AS date_diff
 FROM sakila.rental;
 -- Hint: To do this, use the rental table, and the DATEDIFF() function to subtract the earliest date in the rental_date column from the latest date.
 -- 2.2 Retrieve rental information and add two additional columns to show the month and weekday of the rental. Return 20 rows of results.
@@ -28,16 +28,37 @@ LIMIT 20;
 -- Hint: use a conditional expression.
 SELECT rental_date, 
 CASE
-	WHEN WEEKDAY(rental_date) IN (2,3,4,5,6) THEN "workday"
-    ELSE "weekend"
+	WHEN WEEKDAY(rental_date) IN (5,6) THEN "weekday"
+    ELSE "workday"
 END AS "DAY_TYPE" 
 FROM sakila.rental;
--- You need to ensure that customers can easily access information about the movie collection. To achieve this, retrieve the film titles and their rental duration. If any rental duration value is NULL, replace it with the string 'Not Available'. Sort the results of the film title in ascending order.
+-- 3. You need to ensure that customers can easily access information about the movie collection. To achieve this, retrieve the film titles and their rental duration. If any rental duration value is NULL, replace it with the string 'Not Available'. Sort the results of the film title in ascending order.
+SELECT * FROM sakila.film;
 
--- Please note that even if there are currently no null values in the rental duration column, the query should still be written to handle such cases in the future.
+SELECT title, rental_duration
+FROM sakila.film
+WHERE rental_duration IS NULL;
+
+SELECT title,
+CASE
+	WHEN rental_duration IS NULL THEN "Not Available"
+	ELSE rental_duration
+END AS rental_duration_full
+FROM sakila.film
+ORDER BY title ASC;
+
+-- 4. Please note that even if there are currently no null values in the rental duration column, the query should still be written to handle such cases in the future.
 -- Hint: Look for the IFNULL() function.
--- Bonus: The marketing team for the movie rental company now needs to create a personalized email campaign for customers. To achieve this, you need to retrieve the concatenated first and last names of customers, along with the first 3 characters of their email address, so that you can address them by their first name and use their email address to send personalized recommendations. The results should be ordered by last name in ascending order to make it easier to use the data.
+SELECT *,
+CASE
+	WHEN IFNULL(rental_duration,NULL) THEN "Not Available"
+END AS handle_null
+FROM sakila.film; 
 
+-- Bonus: The marketing team for the movie rental company now needs to create a personalized email campaign for customers. To achieve this, you need to retrieve the concatenated first and last names of customers, along with the first 3 characters of their email address, so that you can address them by their first name and use their email address to send personalized recommendations. The results should be ordered by last name in ascending order to make it easier to use the data.
+SELECT first_name, last_name, email, CONCAT(first_name, last_name,SUBSTRING(SUBSTRING_INDEX(email, "@", 3),1,3),"@", SUBSTRING_INDEX(email, "@", -1)) AS campaign_email
+FROM sakila.customer
+ORDER BY last_name ASC;
 -- Challenge 2
 -- 1. Next, you need to analyze the films in the collection to gain some more insights. Using the film table, determine:
 SELECT * FROM sakila.film;
